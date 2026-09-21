@@ -1,11 +1,13 @@
 "use client";
 import { useState, useEffect } from 'react';
 import TabPresensi from '../components/TabPresensi';
+import TabRekapKelas from '../components/TabRekapKelas';
 import TabMahasiswa from '../components/TabMahasiswa';
 import TabJadwal from '../components/TabJadwal';
 import TabTraining from '../components/TabTraining';
+import TabIzin from '../components/TabIzin'; // <-- Komponen Tab Izin / Sakit yang baru
 
-const API_URL = "http://127.0.0.1:5000/api";
+const API_URL = "http://10.23.228.103:5000/api"; // Sesuaikan dengan IP backend Flask kamu jika perlu
 
 export default function AdminDashboard() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -156,6 +158,29 @@ export default function AdminDashboard() {
             </button>
 
             <button 
+              onClick={() => setActiveTab('rekap_kelas')} 
+              className={`w-full text-left px-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-3.5 ${
+                activeTab === 'rekap_kelas' 
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 translate-x-1' 
+                  : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
+              }`}
+            >
+              <span className="text-lg">📋</span> Rekap Per Kelas
+            </button>
+
+            {/* Menu Surat Izin / Sakit */}
+            <button 
+              onClick={() => setActiveTab('izin')} 
+              className={`w-full text-left px-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-3.5 ${
+                activeTab === 'izin' 
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 translate-x-1' 
+                  : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
+              }`}
+            >
+              <span className="text-lg">✉️</span> Surat Izin / Sakit
+            </button>
+
+            <button 
               onClick={() => setActiveTab('mahasiswa')} 
               className={`w-full text-left px-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-3.5 ${
                 activeTab === 'mahasiswa' 
@@ -205,7 +230,7 @@ export default function AdminDashboard() {
       <main className="flex-1 p-8 overflow-y-auto">
         <div className="mb-8">
           <h1 className="text-2xl font-extrabold text-gray-900 capitalize tracking-tight">
-            {activeTab.replace('_', ' ')} Dashboard
+            {activeTab === 'izin' ? 'Verifikasi Surat Izin / Sakit' : `${activeTab.replace('_', ' ')} Dashboard`}
           </h1>
           <p className="text-xs text-gray-500 mt-1">
             Kelola dan pantau seluruh aktivitas sistem presensi wajah secara real-time
@@ -213,6 +238,8 @@ export default function AdminDashboard() {
         </div>
 
         {activeTab === 'presensi' && <TabPresensi />}
+        {activeTab === 'rekap_kelas' && <TabRekapKelas />}
+        {activeTab === 'izin' && <TabIzin />}
         {activeTab === 'mahasiswa' && <TabMahasiswa />}
         {activeTab === 'jadwal' && <TabJadwal />}
         {activeTab === 'training' && <TabTraining />}
