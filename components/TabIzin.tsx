@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const API_URL = "http://127.0.0.1:5000/api";
+const API_URL = "https://lbphpresensi-production.up.railway.app/api";
 
 export default function TabIzin() {
   const [dataIzin, setDataIzin] = useState<any[]>([]);
@@ -61,7 +61,7 @@ export default function TabIzin() {
                   <td className="p-3">
                     {item.bukti_url ? (
                       <a 
-                        href={`http://127.0.0.1:5000/${item.bukti_url}`} 
+                        href={`https://lbphpresensi-production.up.railway.app/${item.bukti_url}`} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="text-blue-600 underline font-medium hover:text-blue-800"

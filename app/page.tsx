@@ -7,7 +7,7 @@ import TabJadwal from '../components/TabJadwal';
 import TabTraining from '../components/TabTraining';
 import TabIzin from '../components/TabIzin'; // <-- Komponen Tab Izin / Sakit yang baru
 
-const API_URL = "http://10.23.228.103:5000/api"; // Sesuaikan dengan IP backend Flask kamu jika perlu
+const API_URL = "https://lbphpresensi-production.up.railway.app/api"; // Sesuaikan dengan IP backend Flask kamu jika perlu
 
 export default function AdminDashboard() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API_URL = "http://127.0.0.1:5000/api";
+const API_URL = "https://lbphpresensi-production.up.railway.app/api";
 
 export default function TabRekapKelas() {
   const [modeRekap, setModeRekap] = useState<'umum' | 'matkul'>('umum'); // 'umum' = per kelas saja, 'matkul' = per kelas + matkul
