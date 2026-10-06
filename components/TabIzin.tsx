@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-
-const API_URL = "https://lbphpresensi-production.up.railway.app/api";
+import { fetchApi } from '../utils/api';
 
 export default function TabIzin() {
   const [dataIzin, setDataIzin] = useState<any[]>([]);
@@ -12,7 +11,7 @@ export default function TabIzin() {
 
   const fetchIzin = async () => {
     try {
-      const res = await fetch(`${API_URL}/admin/izin`);
+      const res = await fetchApi('/admin/izin');
       const json = await res.json();
       if (json.status === 'success') {
         setDataIzin(json.data || []);
@@ -60,12 +59,8 @@ export default function TabIzin() {
                   <td className="p-3">{item.waktu}</td>
                   <td className="p-3">
                     {item.bukti_url ? (
-                      <a 
-                        href={`https://lbphpresensi-production.up.railway.app/${item.bukti_url}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 underline font-medium hover:text-blue-800"
-                      >
+                      // BENAR (Langsung gunakan URL publik dari Supabase)
+                      <a href={item.bukti_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium hover:text-blue-800">
                         Lihat Surat 📄
                       </a>
                     ) : (

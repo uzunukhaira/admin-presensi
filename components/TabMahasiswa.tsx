@@ -1,12 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-
-const API_URL = "https://lbphpresensi-production.up.railway.app/api";
+import { fetchApi } from '../utils/api';
 
 export default function TabMahasiswa() {
   const [dataMahasiswa, setDataMahasiswa] = useState([]);
   const [dataKelas, setDataKelas] = useState([]); 
-  
-  // State untuk Tab Kelas yang Dipilih & Pencarian
   const [selectedKelas, setSelectedKelas] = useState('SEMUA');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -27,7 +24,7 @@ export default function TabMahasiswa() {
 
   const fetchMahasiswa = async () => {
     try {
-      const res = await fetch(`${API_URL}/admin/mahasiswa`);
+      const res = await fetchApi('/admin/mahasiswa');
       const json = await res.json();
       setDataMahasiswa(json.data || []);
     } catch (e) {
@@ -37,7 +34,7 @@ export default function TabMahasiswa() {
 
   const fetchKelas = async () => {
     try {
-      const res = await fetch(`${API_URL}/admin/kelas`);
+      const res = await fetchApi('/admin/kelas');
       const json = await res.json();
       setDataKelas(json.data || []);
     } catch (e) {
@@ -51,19 +48,19 @@ export default function TabMahasiswa() {
     formData.append('nim', formMhs.nim);
     formData.append('nama', formMhs.nama);
     formData.append('id_kelas', formMhs.id_kelas);
-    
-    if (formMhs.password) {
-      formData.append('password', formMhs.password);
-    }
+    if (formMhs.password) formData.append('password', formMhs.password);
 
-    const url = isEditMode 
-      ? `${API_URL}/admin/mahasiswa/${formMhs.nim}` 
-      : `${API_URL}/register-akun`;
-      
+    const url = isEditMode ? `/admin/mahasiswa/${formMhs.nim}` : '/register-akun';
     const method = isEditMode ? 'PUT' : 'POST';
 
     try {
-      const res = await fetch(url, { method: method, body: formData });
+      // Perhatikan khusus untuk endpoint ini karena menggunakan FormData, kita kirim headers kosongan agar browser otomatis set multipart/form-data
+      const API_URL_BASE = "https://rover-french-promotion.ngrok-free.dev/api";
+      const res = await fetch(`${API_URL_BASE}${url}`, {
+        method: method,
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+        body: formData
+      });
       if (res.ok) {
         alert(isEditMode ? "Data Mahasiswa Berhasil Diperbarui!" : "Mahasiswa Berhasil Ditambahkan!");
         batalEdit();
@@ -95,7 +92,7 @@ export default function TabMahasiswa() {
 
   const hapusMahasiswa = async (nim: string) => {
     if(!confirm(`Yakin ingin menghapus NIM ${nim}?`)) return;
-    await fetch(`${API_URL}/admin/mahasiswa/${nim}`, { method: 'DELETE' });
+    await fetchApi(`/admin/mahasiswa/${nim}`, { method: 'DELETE' });
     fetchMahasiswa();
   };
 
@@ -112,13 +109,17 @@ export default function TabMahasiswa() {
     const formData = new FormData();
     formData.append('nim', uploadingNim);
     formData.append('is_admin', 'true'); 
-    
     for (let i = 0; i < files.length; i++) {
       formData.append('foto', files[i]);
     }
 
     try {
-      const res = await fetch(`${API_URL}/register-wajah`, { method: 'POST', body: formData });
+      const API_URL_BASE = "https://rover-french-promotion.ngrok-free.dev/api";
+      const res = await fetch(`${API_URL_BASE}/register-wajah`, {
+        method: 'POST',
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+        body: formData
+      });
       const json = await res.json();
       if (res.ok) {
         alert(`Berhasil! ${json.message}`);
@@ -135,13 +136,9 @@ export default function TabMahasiswa() {
     if (fileInputRef.current) fileInputRef.current.value = ''; 
   };
 
-  // --- LOGIKA FILTER BERDASARKAN TAB KELAS & SEARCH ---
   const filteredMahasiswa = dataMahasiswa.filter((mhs: any) => {
     const matchTabKelas = selectedKelas === 'SEMUA' || mhs.nama_kelas === selectedKelas;
-    const matchSearch = 
-      mhs.nim.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      mhs.nama.toLowerCase().includes(searchQuery.toLowerCase());
-
+    const matchSearch = mhs.nim.toLowerCase().includes(searchQuery.toLowerCase()) || mhs.nama.toLowerCase().includes(searchQuery.toLowerCase());
     return matchTabKelas && matchSearch;
   });
 
@@ -150,15 +147,10 @@ export default function TabMahasiswa() {
   const currentData = filteredMahasiswa.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredMahasiswa.length / itemsPerPage);
 
-  const nextPage = () => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); };
-  const prevPage = () => { if (currentPage > 1) setCurrentPage(currentPage - 1); };
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      
       <input type="file" multiple accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
 
-      {/* Form Tambah/Edit Mahasiswa */}
       <div className="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-fit">
         <h3 className="font-bold text-lg mb-4 text-gray-800">
           {isEditMode ? 'Edit Data Mahasiswa' : 'Tambah Mahasiswa Baru'}
@@ -171,7 +163,7 @@ export default function TabMahasiswa() {
               placeholder="NIM" 
               required 
               disabled={isEditMode}
-              className={`w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${isEditMode ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''}`} 
+              className={`w-full border border-gray-300 p-3 rounded-lg outline-none ${isEditMode ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''}`} 
               value={formMhs.nim} 
               onChange={(e) => setFormMhs({...formMhs, nim: e.target.value})} 
             />
@@ -179,22 +171,20 @@ export default function TabMahasiswa() {
           
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Nama Lengkap</label>
-            <input type="text" placeholder="Nama Lengkap" required className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" value={formMhs.nama} onChange={(e) => setFormMhs({...formMhs, nama: e.target.value})} />
+            <input type="text" placeholder="Nama Lengkap" required className="w-full border border-gray-300 p-3 rounded-lg outline-none" value={formMhs.nama} onChange={(e) => setFormMhs({...formMhs, nama: e.target.value})} />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Kelas</label>
             <select 
               required 
-              className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+              className="w-full border border-gray-300 p-3 rounded-lg bg-white outline-none"
               value={formMhs.id_kelas}
               onChange={(e) => setFormMhs({...formMhs, id_kelas: e.target.value})}
             >
               <option value="" disabled>-- Pilih Kelas --</option>
               {dataKelas.map((kelas: any) => (
-                <option key={kelas.id_kelas} value={kelas.id_kelas}>
-                  {kelas.nama_kelas}
-                </option>
+                <option key={kelas.id_kelas} value={kelas.id_kelas}>{kelas.nama_kelas}</option>
               ))}
             </select>
           </div>
@@ -207,7 +197,7 @@ export default function TabMahasiswa() {
               type="password" 
               placeholder="Password Akun" 
               required={!isEditMode}
-              className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+              className="w-full border border-gray-300 p-3 rounded-lg outline-none" 
               value={formMhs.password} 
               onChange={(e) => setFormMhs({...formMhs, password: e.target.value})} 
             />
@@ -226,7 +216,6 @@ export default function TabMahasiswa() {
         </form>
       </div>
       
-      {/* Tabel Mahasiswa dengan Tab Kelas */}
       <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
         <div>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
@@ -236,26 +225,22 @@ export default function TabMahasiswa() {
                 Menampilkan kelas: <span className="font-bold text-blue-600">{selectedKelas}</span> ({filteredMahasiswa.length} mahasiswa)
               </p>
             </div>
-            
             <div className="w-full md:w-64">
               <input 
                 type="text" 
                 placeholder="🔍 Cari NIM atau Nama..." 
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                className="w-full border border-gray-300 px-3.5 py-2 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full border border-gray-300 px-3.5 py-2 rounded-lg text-xs outline-none"
               />
             </div>
           </div>
 
-          {/* TAB PILIHAN KELAS (Bisa digeser horizontal jika kelasnya banyak) */}
           <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-thin">
             <button
               onClick={() => { setSelectedKelas('SEMUA'); setCurrentPage(1); }}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition ${
-                selectedKelas === 'SEMUA' 
-                  ? 'bg-blue-600 text-white shadow' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                selectedKelas === 'SEMUA' ? 'bg-blue-600 text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               📁 Semua Kelas
@@ -265,9 +250,7 @@ export default function TabMahasiswa() {
                 key={k.id_kelas}
                 onClick={() => { setSelectedKelas(k.nama_kelas); setCurrentPage(1); }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition ${
-                  selectedKelas === k.nama_kelas 
-                    ? 'bg-blue-600 text-white shadow' 
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  selectedKelas === k.nama_kelas ? 'bg-blue-600 text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 {k.nama_kelas}
@@ -326,12 +309,8 @@ export default function TabMahasiswa() {
                           </button>
                         </td>
                         <td className="p-3 text-right whitespace-nowrap">
-                          <button onClick={() => handleEditClick(row)} className="text-blue-600 font-bold hover:bg-blue-50 px-2 py-1 rounded transition mr-1">
-                            Edit
-                          </button>
-                          <button onClick={() => hapusMahasiswa(row.nim)} className="text-red-500 font-bold hover:bg-red-50 px-2 py-1 rounded transition">
-                            Hapus
-                          </button>
+                          <button onClick={() => handleEditClick(row)} className="text-blue-600 font-bold hover:bg-blue-50 px-2 py-1 rounded transition mr-1">Edit</button>
+                          <button onClick={() => hapusMahasiswa(row.nim)} className="text-red-500 font-bold hover:bg-red-50 px-2 py-1 rounded transition">Hapus</button>
                         </td>
                       </tr>
                     );
@@ -346,13 +325,12 @@ export default function TabMahasiswa() {
           <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-100">
             <span className="text-xs text-gray-500 font-medium">Halaman {currentPage} dari {totalPages}</span>
             <div className="flex gap-2">
-              <button onClick={prevPage} disabled={currentPage === 1} className="px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-bold disabled:opacity-30">◀ Prev</button>
-              <button onClick={nextPage} disabled={currentPage === totalPages} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold disabled:opacity-30">Next ▶</button>
+              <button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1} className="px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-bold disabled:opacity-30">◀ Prev</button>
+              <button onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold disabled:opacity-30">Next ▶</button>
             </div>
           </div>
         )}
       </div>
-
     </div>
   );
 }

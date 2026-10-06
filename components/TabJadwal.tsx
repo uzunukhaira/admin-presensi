@@ -1,16 +1,12 @@
 import { useState, useEffect } from 'react';
-
-const API_URL = "https://lbphpresensi-production.up.railway.app/api";
+import { fetchApi } from '../utils/api';
 
 export default function TabJadwal() {
   const [dataJadwal, setDataJadwal] = useState([]);
   const [masterData, setMasterData] = useState({ kelas: [], dosen: [], matkul: [], ruangan: [] });
-  
-  // State untuk Tab Kelas yang Dipilih & Pencarian
   const [selectedKelas, setSelectedKelas] = useState('SEMUA');
   const [searchQuery, setSearchQuery] = useState('');
-
-  // State Form Tambah/Edit Jadwal
+  
   const [formJadwal, setFormJadwal] = useState({
     id_jadwal: null,
     id_mk: '',
@@ -24,8 +20,6 @@ export default function TabJadwal() {
     semester: 'Genap'
   });
   const [isEditMode, setIsEditMode] = useState(false);
-
-  // State Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -36,7 +30,7 @@ export default function TabJadwal() {
 
   const fetchJadwal = async () => {
     try {
-      const res = await fetch(`${API_URL}/admin/jadwal`);
+      const res = await fetchApi('/admin/jadwal');
       const json = await res.json();
       setDataJadwal(json.data || []);
     } catch (e) {
@@ -46,7 +40,7 @@ export default function TabJadwal() {
 
   const fetchMasterData = async () => {
     try {
-      const res = await fetch(`${API_URL}/admin/master-data`);
+      const res = await fetchApi('/admin/master-data');
       const json = await res.json();
       setMasterData(json.data || { kelas: [], dosen: [], matkul: [], ruangan: [] });
     } catch (e) {
@@ -56,15 +50,12 @@ export default function TabJadwal() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = isEditMode 
-      ? `${API_URL}/admin/jadwal/${formJadwal.id_jadwal}` 
-      : `${API_URL}/admin/jadwal`;
+    const url = isEditMode ? `/admin/jadwal/${formJadwal.id_jadwal}` : '/admin/jadwal';
     const method = isEditMode ? 'PUT' : 'POST';
 
     try {
-      const res = await fetch(url, {
+      const res = await fetchApi(url, {
         method: method,
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formJadwal)
       });
       const json = await res.json();
@@ -117,7 +108,7 @@ export default function TabJadwal() {
   const hapusJadwal = async (id: number) => {
     if (!confirm("Yakin ingin menghapus jadwal ini?")) return;
     try {
-      const res = await fetch(`${API_URL}/admin/jadwal/${id}`, { method: 'DELETE' });
+      const res = await fetchApi(`/admin/jadwal/${id}`, { method: 'DELETE' });
       if (res.ok) {
         fetchJadwal();
       } else {
@@ -128,7 +119,6 @@ export default function TabJadwal() {
     }
   };
 
-  // --- LOGIKA FILTER BERDASARKAN TAB KELAS & SEARCH ---
   const filteredJadwal = dataJadwal.filter((item: any) => {
     const matchTabKelas = selectedKelas === 'SEMUA' || item.nama_kelas === selectedKelas;
     const matchSearch = 
@@ -136,7 +126,6 @@ export default function TabJadwal() {
       item.nama_dosen?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.nama_ruangan?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.hari?.toLowerCase().includes(searchQuery.toLowerCase());
-
     return matchTabKelas && matchSearch;
   });
 
@@ -147,19 +136,16 @@ export default function TabJadwal() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      
-      {/* Form Tambah / Edit Jadwal */}
       <div className="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-fit">
         <h3 className="font-bold text-lg mb-4 text-gray-800">
           {isEditMode ? 'Edit Jadwal Kuliah' : 'Tambah Jadwal Kuliah'}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-3.5 text-sm">
-          
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Mata Kuliah</label>
             <select 
               required 
-              className="w-full border border-gray-300 p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border border-gray-300 p-2.5 rounded-lg bg-white outline-none"
               value={formJadwal.id_mk}
               onChange={(e) => setFormJadwal({...formJadwal, id_mk: e.target.value})}
             >
@@ -174,7 +160,7 @@ export default function TabJadwal() {
             <label className="block text-xs font-semibold text-gray-500 mb-1">Dosen Pengampu</label>
             <select 
               required 
-              className="w-full border border-gray-300 p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border border-gray-300 p-2.5 rounded-lg bg-white outline-none"
               value={formJadwal.id_dosen}
               onChange={(e) => setFormJadwal({...formJadwal, id_dosen: e.target.value})}
             >
@@ -190,7 +176,7 @@ export default function TabJadwal() {
               <label className="block text-xs font-semibold text-gray-500 mb-1">Kelas</label>
               <select 
                 required 
-                className="w-full border border-gray-300 p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none text-xs"
+                className="w-full border border-gray-300 p-2.5 rounded-lg bg-white text-xs outline-none"
                 value={formJadwal.id_kelas}
                 onChange={(e) => setFormJadwal({...formJadwal, id_kelas: e.target.value})}
               >
@@ -203,7 +189,7 @@ export default function TabJadwal() {
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1">Ruangan</label>
               <select 
-                className="w-full border border-gray-300 p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none text-xs"
+                className="w-full border border-gray-300 p-2.5 rounded-lg bg-white text-xs outline-none"
                 value={formJadwal.id_ruangan}
                 onChange={(e) => setFormJadwal({...formJadwal, id_ruangan: e.target.value})}
               >
@@ -219,7 +205,7 @@ export default function TabJadwal() {
             <label className="block text-xs font-semibold text-gray-500 mb-1">Hari</label>
             <select 
               required 
-              className="w-full border border-gray-300 p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border border-gray-300 p-2.5 rounded-lg bg-white outline-none"
               value={formJadwal.hari}
               onChange={(e) => setFormJadwal({...formJadwal, hari: e.target.value})}
             >
@@ -253,7 +239,6 @@ export default function TabJadwal() {
         </form>
       </div>
 
-      {/* Bagian Daftar Jadwal dengan Sistem Tab Per Kelas */}
       <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
         <div>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
@@ -263,8 +248,6 @@ export default function TabJadwal() {
                 Menampilkan kelas: <span className="font-bold text-blue-600">{selectedKelas}</span> ({filteredJadwal.length} jadwal)
               </p>
             </div>
-
-            {/* Kotak Pencarian Kecil */}
             <input 
               type="text" 
               placeholder="🔍 Cari MK / Dosen..." 
@@ -274,14 +257,11 @@ export default function TabJadwal() {
             />
           </div>
 
-          {/* TAB PILIHAN KELAS (Bisa di-scroll horizontal jika kelasnya banyak) */}
           <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-thin">
             <button
               onClick={() => { setSelectedKelas('SEMUA'); setCurrentPage(1); }}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition ${
-                selectedKelas === 'SEMUA' 
-                  ? 'bg-blue-600 text-white shadow' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                selectedKelas === 'SEMUA' ? 'bg-blue-600 text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               📁 Semua Kelas
@@ -291,9 +271,7 @@ export default function TabJadwal() {
                 key={k.id}
                 onClick={() => { setSelectedKelas(k.nama); setCurrentPage(1); }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition ${
-                  selectedKelas === k.nama 
-                    ? 'bg-blue-600 text-white shadow' 
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  selectedKelas === k.nama ? 'bg-blue-600 text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 {k.nama}
@@ -301,7 +279,6 @@ export default function TabJadwal() {
             ))}
           </div>
 
-          {/* Tabel Daftar Jadwal */}
           <div className="max-h-[400px] overflow-y-auto border border-gray-100 rounded-lg">
             <table className="w-full text-left border-collapse">
               <thead className="bg-gray-50 sticky top-0 z-10 text-gray-600 text-xs uppercase">
@@ -333,12 +310,8 @@ export default function TabJadwal() {
                         <p className="text-gray-400">📍 {row.nama_ruangan}</p>
                       </td>
                       <td className="p-3 text-right whitespace-nowrap">
-                        <button onClick={() => handleEditClick(row)} className="text-blue-600 font-bold hover:bg-blue-50 px-2 py-1 rounded transition mr-1">
-                          Edit
-                        </button>
-                        <button onClick={() => hapusJadwal(row.id_jadwal)} className="text-red-500 font-bold hover:bg-red-50 px-2 py-1 rounded transition">
-                          Hapus
-                        </button>
+                        <button onClick={() => handleEditClick(row)} className="text-blue-600 font-bold hover:bg-blue-50 px-2 py-1 rounded transition mr-1">Edit</button>
+                        <button onClick={() => hapusJadwal(row.id_jadwal)} className="text-red-500 font-bold hover:bg-red-50 px-2 py-1 rounded transition">Hapus</button>
                       </td>
                     </tr>
                   ))
@@ -348,7 +321,6 @@ export default function TabJadwal() {
           </div>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-100">
             <span className="text-xs text-gray-500">Halaman {currentPage} dari {totalPages}</span>
@@ -359,7 +331,6 @@ export default function TabJadwal() {
           </div>
         )}
       </div>
-
     </div>
   );
 }

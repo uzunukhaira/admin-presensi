@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { fetchApi } from '../utils/api';
 
-const API_URL = "https://lbphpresensi-production.up.railway.app/api";
+const API_URL = "https://rover-french-promotion.ngrok-free.dev/api";
 
 export default function TabRekapKelas() {
-  const [modeRekap, setModeRekap] = useState<'umum' | 'matkul'>('umum'); // 'umum' = per kelas saja, 'matkul' = per kelas + matkul
+  const [modeRekap, setModeRekap] = useState<'umum' | 'matkul'>('umum');
   const [dataKelas, setDataKelas] = useState([]);
   const [selectedKelasId, setSelectedKelasId] = useState('');
   const [dataJadwalKelas, setDataJadwalKelas] = useState([]);
@@ -17,7 +18,7 @@ export default function TabRekapKelas() {
 
   const fetchKelas = async () => {
     try {
-      const res = await fetch(`${API_URL}/admin/kelas`);
+      const res = await fetchApi('/admin/kelas');
       const json = await res.json();
       if (json.data && json.data.length > 0) {
         setDataKelas(json.data);
@@ -32,7 +33,7 @@ export default function TabRekapKelas() {
 
   const fetchJadwalByKelas = async (idKelas: string) => {
     try {
-      const res = await fetch(`${API_URL}/admin/jadwal`);
+      const res = await fetchApi('/admin/jadwal');
       const json = await res.json();
       const filtered = (json.data || []).filter((j: any) => String(j.id_kelas) === String(idKelas));
       setDataJadwalKelas(filtered);
@@ -50,12 +51,12 @@ export default function TabRekapKelas() {
     if (!idKelas) return;
     setIsLoading(true);
     try {
-      let endpoint = `${API_URL}/admin/rekap-tabel-umum?id_kelas=${idKelas}`;
+      let endpoint = `/admin/rekap-tabel-umum?id_kelas=${idKelas}`;
       if (mode === 'matkul' && idJadwal) {
-        endpoint = `${API_URL}/admin/rekap-tabel?id_kelas=${idKelas}&id_jadwal=${idJadwal}`;
+        endpoint = `/admin/rekap-tabel?id_kelas=${idKelas}&id_jadwal=${idJadwal}`;
       }
       
-      const res = await fetch(endpoint);
+      const res = await fetchApi(endpoint);
       const json = await res.json();
       setDataRekap(json.data || []);
     } catch (e) {
@@ -82,7 +83,6 @@ export default function TabRekapKelas() {
           <p className="text-xs text-gray-500">Pilih mode laporan rekapitulasi kelas atau rekapitulasi per mata kuliah</p>
         </div>
 
-        {/* Pilihan Mode Rekap */}
         <div className="flex items-center gap-2">
           <div className="flex bg-gray-100 p-1 rounded-lg">
             <button
@@ -119,7 +119,6 @@ export default function TabRekapKelas() {
         </div>
       </div>
 
-      {/* Navigasi Pilih Kelas */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <span className="text-xs font-bold text-gray-600">Kelas:</span>
         <div className="flex bg-gray-50 p-1 rounded-lg border border-gray-200">
@@ -141,7 +140,6 @@ export default function TabRekapKelas() {
         </div>
       </div>
 
-      {/* Jika Mode Matkul Dipilih, Tampilkan Dropdown Mata Kuliah */}
       {modeRekap === 'matkul' && (
         <div className="mb-6 flex items-center gap-2 bg-blue-50/50 p-3 rounded-lg border border-blue-100">
           <span className="text-xs font-bold text-blue-800">Mata Kuliah:</span>
@@ -162,7 +160,6 @@ export default function TabRekapKelas() {
         </div>
       )}
 
-      {/* Tabel Utama Rekap */}
       <div className="border border-gray-100 rounded-lg overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead className="bg-gray-50 text-gray-600 text-xs uppercase">

@@ -5,9 +5,9 @@ import TabRekapKelas from '../components/TabRekapKelas';
 import TabMahasiswa from '../components/TabMahasiswa';
 import TabJadwal from '../components/TabJadwal';
 import TabTraining from '../components/TabTraining';
-import TabIzin from '../components/TabIzin'; // <-- Komponen Tab Izin / Sakit yang baru
+import TabIzin from '../components/TabIzin';
 
-const API_URL = "https://lbphpresensi-production.up.railway.app/api"; // Sesuaikan dengan IP backend Flask kamu jika perlu
+const API_URL = "https://rover-french-promotion.ngrok-free.dev/api";
 
 export default function AdminDashboard() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -29,7 +29,10 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`${API_URL}/admin/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
         body: JSON.stringify(loginForm)
       });
       const json = await res.json();

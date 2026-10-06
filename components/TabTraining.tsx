@@ -1,6 +1,5 @@
 import { useState } from 'react';
-
-const API_URL = "https://lbphpresensi-production.up.railway.app/api";
+import { fetchApi } from '../utils/api';
 
 export default function TabTraining() {
   const [isLoading, setIsLoading] = useState(false);
@@ -8,7 +7,7 @@ export default function TabTraining() {
   const triggerTraining = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_URL}/train`);
+      const res = await fetchApi('/train');
       const json = await res.json();
       
       if (res.ok) {
